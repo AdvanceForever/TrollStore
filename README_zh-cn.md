@@ -1,0 +1,121 @@
+# TrollStore
+
+TrollStore是一款永久监禁的应用程序，可以永久安装你在其中打开的任何IPA。
+
+它之所以有效，是因为存在AMFI/CoreTrust漏洞，iOS无法正确验证存在多个签名者的二进制文件的代码签名。
+
+支持的版本：14.0-16.6.1、17.0
+
+## Installing TrollStore
+
+有关TrollStore的安装，请参阅上的指南 [ios.cfw.guide](https://ios.cfw.guide/installing-trollstore)
+
+16.7.x和17.0.1+将永远不受支持（除非苹果第三次搞砸CoreTrust…）。
+
+## Updating TrollStore
+
+当新的TrollStore更新可用时，TrollStore设置的顶部将显示一个安装按钮。点击按钮后，TrollStore将自动下载更新、安装并重新发布。
+
+或者（如果出现任何问题），您可以在Release下下载TrollStore.tar文件，并在TrollStore中打开它，TrollStore将安装更新并重新发布。
+
+## Uninstalling an app
+
+Apps installed from TrollStore can only be uninstalled from TrollStore itself, tap an app or swipe it to the left in the 'Apps' tab to delete it.
+
+## Persistence Helper
+
+The CoreTrust bug used in TrollStore is only enough to install "System" apps, this is because FrontBoard has an additional security check (it calls libmis) every time before a user app is launched. Unfortunately it is not possible to install new "System" apps that stay through an icon cache reload. Therefore, when iOS reloads the icon cache, all TrollStore installed apps including TrollStore itself will revert back to "User" state and will no longer launch.
+
+The only way to work around this is to install a persistence helper into a system app, this helper can then be used to reregister TrollStore and its installed apps as "System" so that they become launchable again, an option for this is available in TrollStore settings.
+
+On jailbroken iOS 14 when TrollHelper is used for installation, it is located in /Applications and will persist as a "System" app through icon cache reloads, therefore TrollHelper is used as the persistence helper on iOS 14.
+
+## URL Scheme
+
+As of version 1.3, TrollStore replaces the system URL scheme "apple-magnifier" (this is done so "jailbreak" detections can't detect TrollStore like they could if TrollStore had a unique URL scheme). This URL scheme can be used to install applications right from the browser, the format goes as follows:
+
+`apple-magnifier://install?url=<URL_to_IPA>`
+
+On devices that don't have TrollStore (1.3+) installed, this will just open the magnifier app.
+
+## Features
+
+The binaries inside an IPA can have arbitrary entitlements, fakesign them with ldid and the entitlements you want (`ldid -S<path/to/entitlements.plist> <path/to/binary>`) and TrollStore will preserve the entitlements when resigning them with the fake root certificate on installation. This gives you a lot of possibilities, some of which are explained below.
+
+### Banned entitlements
+
+iOS 15 on A12+ has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL bypass, apps signed with them will crash on launch.
+
+`com.apple.private.cs.debugger`
+
+`dynamic-codesigning`
+
+`com.apple.private.skip-library-validation`
+
+### Unsandboxing
+
+Your app can run unsandboxed using one of the following entitlements:
+
+```xml
+<key>com.apple.private.security.container-required</key>
+<false/>
+```
+
+```xml
+<key>com.apple.private.security.no-container</key>
+<true/>
+```
+
+```xml
+<key>com.apple.private.security.no-sandbox</key>
+<true/>
+```
+
+The third one is recommended if you still want a sandbox container for your application.
+
+You might also need the platform-application entitlement in order for these to work properly:
+
+```xml
+<key>platform-application</key>
+<true/>
+```
+
+Please note that the platform-application entitlement causes side effects such as some parts of the sandbox becoming tighter, so you may need additional private entitlements to circumvent that. (For example afterwards you need an exception entitlement for every single IOKit user client class you want to access).
+
+In order for an app with `com.apple.private.security.no-sandbox` and `platform-application` to be able to access it's own data container, you might need the additional entitlement:
+
+```xml
+<key>com.apple.private.security.storage.AppDataContainers</key>
+<true/>
+```
+
+### Root Helpers
+
+When your app is not sandboxed, you can spawn other binaries using posix_spawn, you can also spawn binaries as root with the following entitlement:
+
+```xml
+<key>com.apple.private.persona-mgmt</key>
+<true/>
+```
+
+You can also add your own binaries into your app bundle.
+
+Afterwards you can use the [spawnRoot function in TSUtil.m](./Shared/TSUtil.m#L79) to spawn the binary as root.
+
+### Things that are not possible using TrollStore
+
+- Getting proper platformization (`TF_PLATFORM` / `CS_PLATFORMIZED`)
+- Spawning a launch daemon (Would need `CS_PLATFORMIZED`)
+- Injecting a tweak into a system process (Would need `TF_PLATFORM`, a userland PAC bypass and a PMAP trust level bypass)
+
+## Credits and Further Reading
+
+[@alfiecg_dev](https://twitter.com/alfiecg_dev/) - Found the CoreTrust bug that allows TrollStore to work through patchdiffing and worked on automating the bypass.
+
+Google Threat Analysis Group - Found the CoreTrust bug as part of an in-the-wild spyware chain and reported it to Apple.
+
+[@LinusHenze](https://twitter.com/LinusHenze) - Found the installd bypass used to install TrollStore on iOS 14-15.6.1 via TrollHelperOTA, as well as the original CoreTrust bug used in TrollStore 1.0.
+
+[Fugu15 Presentation](https://youtu.be/rPTifU1lG7Q)
+
+[Write-Up on the first CoreTrust bug with more information](https://worthdoingbadly.com/coretrust/).
