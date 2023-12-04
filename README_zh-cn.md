@@ -20,23 +20,23 @@ TrollStore是一款永久监禁的应用程序，可以永久安装你在其中�
 
 ## Uninstalling an app
 
-Apps installed from TrollStore can only be uninstalled from TrollStore itself, tap an app or swipe it to the left in the 'Apps' tab to delete it.
+从TrollStore安装的应用程序只能从TrollStore本身卸载，点击应用程序或在“应用程序”选项卡中将其向左滑动以将其删除。
 
 ## Persistence Helper
 
-The CoreTrust bug used in TrollStore is only enough to install "System" apps, this is because FrontBoard has an additional security check (it calls libmis) every time before a user app is launched. Unfortunately it is not possible to install new "System" apps that stay through an icon cache reload. Therefore, when iOS reloads the icon cache, all TrollStore installed apps including TrollStore itself will revert back to "User" state and will no longer launch.
+TrollStore中使用的CoreTrust漏洞只足以安装“系统”应用程序，这是因为FrontBoard每次在用户应用程序启动之前都会进行额外的安全检查（它调用libmis）。不幸的是，无法安装通过图标缓存重新加载而保留的新“系统”应用程序。因此，当iOS重新加载图标缓存时，所有安装了TrollStore的应用程序，包括TrollStore本身，都将恢复到“用户”状态，不再启动。
 
-The only way to work around this is to install a persistence helper into a system app, this helper can then be used to reregister TrollStore and its installed apps as "System" so that they become launchable again, an option for this is available in TrollStore settings.
+解决此问题的唯一方法是将持久性帮助程序安装到系统应用程序中，然后可以使用此帮助程序将TrollStore及其安装的应用程序重新注册为“系统”，以便它们可以再次启动，TrollStore设置中提供了此选项。
 
-On jailbroken iOS 14 when TrollHelper is used for installation, it is located in /Applications and will persist as a "System" app through icon cache reloads, therefore TrollHelper is used as the persistence helper on iOS 14.
+在越狱的iOS 14上，当使用TrollHelper进行安装时，它位于/Applications中，并将通过图标缓存重新加载作为“系统”应用程序进行持久化，因此TrollHelpers在iOS 14上用作持久化助手。
 
 ## URL Scheme
 
-As of version 1.3, TrollStore replaces the system URL scheme "apple-magnifier" (this is done so "jailbreak" detections can't detect TrollStore like they could if TrollStore had a unique URL scheme). This URL scheme can be used to install applications right from the browser, the format goes as follows:
+从1.3版本起，TrollStore取代了系统URL方案“apple-magnifier”（这样做是为了让“越狱”检测无法像TrollStore有唯一URL方案那样检测到TrollStore）。此URL方案可用于直接从浏览器安装应用程序，格式如下：
 
 `apple-magnifier://install?url=<URL_to_IPA>`
 
-On devices that don't have TrollStore (1.3+) installed, this will just open the magnifier app.
+在没有安装TrollStore（1.3+）的设备上，这只会打开放大镜应用程序。
 
 ## Features
 
@@ -80,10 +80,9 @@ You might also need the platform-application entitlement in order for these to w
 <true/>
 ```
 
-Please note that the platform-application entitlement causes side effects such as some parts of the sandbox becoming tighter, so you may need additional private entitlements to circumvent that. (For example afterwards you need an exception entitlement for every single IOKit user client class you want to access).
+请注意，平台应用程序权限会导致副作用，例如沙盒的某些部分变得更紧，因此您可能需要额外的私人权限来规避这一点。（例如，之后您需要为要访问的每个IOKit用户客户端类提供一个异常权限）。
 
-In order for an app with `com.apple.private.security.no-sandbox` and `platform-application` to be able to access it's own data container, you might need the additional entitlement:
-
+为了让具有“com.apple.private.security.no sandbox”和“平台应用程序”的应用程序能够访问其自己的数据容器，您可能需要额外的权限：
 ```xml
 <key>com.apple.private.security.storage.AppDataContainers</key>
 <true/>
